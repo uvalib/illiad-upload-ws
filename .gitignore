@@ -1,0 +1,16 @@
+.DS_Store
+log/*.*
+*.log
+*.pdf
+tmp/*
+*~
+*.bak
+bin
+# Ignore application configuration
+/config.yml
+dist/
+.idea
+env.*
+/pkg
+run.sh
+curls.txt
