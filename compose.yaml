@@ -1,0 +1,11 @@
+services:
+  illiad-upload-ws:
+    build: 
+      dockerfile: package/Dockerfile
+    environment:
+      JWT_KEY: "fake"
+      ILLIAD_UPLOAD_PATH: "/illiad-upload"
+    ports:  
+      - "8080:8080"
+    volumes:
+      - ./illiad-upload:/illiad-upload

@@ -1,7 +1,7 @@
 #
 # build the target application
 #
-FROM public.ecr.aws/docker/library/golang:1.24.4-alpine3.22 AS builder
+FROM public.ecr.aws/docker/library/golang:1.24.6-alpine3.22 AS builder
 
 # update the packages
 RUN apk update && apk upgrade && apk add --no-cache make
@@ -9,7 +9,6 @@ RUN apk update && apk upgrade && apk add --no-cache make
 WORKDIR /build
 COPY go.mod go.sum Makefile ./
 COPY cmd ./cmd
-COPY assets ./assets
 RUN make linux
 
 #
@@ -42,7 +41,7 @@ CMD ["scripts/entry.sh"]
 # Move in necessary assets
 COPY package/data/container_bash_profile /home/webservice/.profile
 COPY package/scripts/entry.sh $APP_HOME/scripts/entry.sh
-COPY --from=builder /build/bin/bin/illiadupload.linux.linux $APP_HOME/bin/illiadupload
+COPY --from=builder /build/bin/illiadupload.linux $APP_HOME/bin/illiadupload
 
 # Ensure permissions are correct
 RUN chown webservice:webservice /home/webservice/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/illiadupload && chmod 755 /home/webservice/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/illiadupload
