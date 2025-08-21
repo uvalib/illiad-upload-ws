@@ -26,10 +26,14 @@ func main() {
 	var ctx serviceContext
 	flag.IntVar(&ctx.port, "port", 8080, "API service port (default 8080)")
 	flag.StringVar(&ctx.uploadDir, "dir", "", "Upload directory")
+	flag.StringVar(&ctx.jwtKey, "jwtkey", "", "V4 JWT key")
 	flag.Parse()
 
 	if ctx.uploadDir == "" {
 		log.Fatal("Parameter dir is required")
+	}
+	if ctx.jwtKey == "" {
+		log.Fatal("Parameter jwtkey is required")
 	}
 
 	log.Printf("[CONFIG] port          = [%d]", ctx.port)
@@ -42,7 +46,7 @@ func main() {
 	router.GET("/", versionHandler)
 	router.GET("/version", versionHandler)
 	router.GET("/healthcheck", healthCheckHandler)
-	router.GET("/upload", ctx.authMiddleware, ctx.uploadHandler)
+	router.POST("/upload", ctx.authMiddleware, ctx.uploadHandler)
 
 	portStr := fmt.Sprintf(":%d", ctx.port)
 	log.Printf("INFO: start service on port %s with CORS support enabled", portStr)
