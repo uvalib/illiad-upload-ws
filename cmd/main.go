@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -82,6 +83,24 @@ func (svc *serviceContext) authMiddleware(c *gin.Context) {
 }
 
 func (svc *serviceContext) uploadHandler(c *gin.Context) {
+	log.Printf("INFO: received new upload request")
+	formData, err := c.MultipartForm()
+	if err != nil {
+		log.Printf("ERROR: unable to form data: %s", err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	formFile := formData.File["file"][0]
+	destFile := path.Join(svc.uploadDir, formFile.Filename)
+	log.Printf("INFO: request contains file %s, save it to %s", formFile.Filename, destFile)
+	err = c.SaveUploadedFile(formFile, destFile)
+	if err != nil {
+		log.Printf("ERROR: unable to save %s: %s", formFile.Filename, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.String(http.StatusOK, fmt.Sprintf("received %s", formFile.Filename))
 }
 
 func versionHandler(c *gin.Context) {
