@@ -83,10 +83,10 @@ func (svc *serviceContext) authMiddleware(c *gin.Context) {
 }
 
 func (svc *serviceContext) uploadHandler(c *gin.Context) {
-	log.Printf("INFO: received new upload request")
+	log.Printf("INFO: received new upload request with content type %s", c.ContentType())
 	formData, err := c.MultipartForm()
 	if err != nil {
-		log.Printf("ERROR: unable to form data: %s", err.Error())
+		log.Printf("ERROR: unable to get multipartform data from request: %s", err.Error())
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
