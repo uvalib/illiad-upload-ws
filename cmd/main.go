@@ -84,6 +84,14 @@ func (svc *serviceContext) authMiddleware(c *gin.Context) {
 
 func (svc *serviceContext) uploadHandler(c *gin.Context) {
 	log.Printf("INFO: received new upload request with content type %s", c.ContentType())
+	log.Printf("Dump all request headers ==================================")
+	for name, values := range c.Request.Header {
+		for _, value := range values {
+			log.Printf("%s=%s\n", name, value)
+		}
+	}
+	log.Printf("END header dump ===========================================")
+
 	formData, err := c.MultipartForm()
 	if err != nil {
 		log.Printf("ERROR: unable to get multipartform data from request: %s", err.Error())
