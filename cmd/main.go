@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -39,6 +40,12 @@ func main() {
 
 	log.Printf("[CONFIG] port          = [%d]", ctx.port)
 	log.Printf("[CONFIG] dir           = [%s]", ctx.uploadDir)
+
+	fi, err := os.Stat(ctx.uploadDir)
+	if err != nil {
+		log.Fatalf("upload directory %s is not valid: %s", ctx.uploadDir, err.Error())
+	}
+	log.Printf("INFO: upload directory permissions: %v", fi.Mode())
 
 	// Set routes and start server
 	gin.SetMode(gin.ReleaseMode)
