@@ -41,19 +41,14 @@ func main() {
 	log.Printf("[CONFIG] port          = [%d]", ctx.port)
 	log.Printf("[CONFIG] dir           = [%s]", ctx.uploadDir)
 
-	fi, err := os.Stat(ctx.uploadDir)
-	if err != nil {
-		log.Fatalf("upload directory %s is not valid: %s", ctx.uploadDir, err.Error())
-	}
-	log.Printf("INFO: upload directory permissions: %v", fi.Mode())
-
 	// Set routes and start server
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableConsoleColor()
 	router := gin.Default()
 	router.GET("/", versionHandler)
+	router.GET("/favicon.ico", ignoreFavicon)
 	router.GET("/version", versionHandler)
-	router.GET("/healthcheck", healthCheckHandler)
+	router.GET("/healthcheck", ctx.healthCheckHandler)
 	router.POST("/upload", ctx.authMiddleware, ctx.uploadHandler)
 
 	portStr := fmt.Sprintf(":%d", ctx.port)
@@ -118,6 +113,10 @@ func (svc *serviceContext) uploadHandler(c *gin.Context) {
 	c.String(http.StatusOK, fmt.Sprintf("received %s", formFile.Filename))
 }
 
+func ignoreFavicon(c *gin.Context) {
+	// no-op; just here to prevent errors when request made from browser
+}
+
 func versionHandler(c *gin.Context) {
 	build := "unknown"
 
@@ -132,7 +131,7 @@ func versionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, vMap)
 }
 
-func healthCheckHandler(c *gin.Context) {
+func (svc *serviceContext) healthCheckHandler(c *gin.Context) {
 	type healthcheck struct {
 		Healthy bool   `json:"healthy"`
 		Message string `json:"message"`
@@ -140,6 +139,16 @@ func healthCheckHandler(c *gin.Context) {
 
 	hcMap := make(map[string]healthcheck)
 	hcMap["illiad-upload"] = healthcheck{Healthy: true}
+
+	fi, err := os.Stat(svc.uploadDir)
+	if err != nil {
+		log.Printf("ERROR: upload directory %s check failed: %s", svc.uploadDir, err.Error())
+	} else {
+		groupID := os.Getegid()
+		userID := os.Geteuid()
+		modeStr := fmt.Sprintf("%v", fi.Mode())
+		log.Printf("INFO: upload directory %s permissions [%s]; current user:group [%d:%d] ", svc.uploadDir, modeStr, userID, groupID)
+	}
 
 	c.JSON(http.StatusOK, hcMap)
 }
