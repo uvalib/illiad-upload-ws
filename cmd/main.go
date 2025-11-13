@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -21,10 +22,10 @@ type serviceContext struct {
 }
 
 // Version of the service
-const Version = "1.0.0"
+const Version = "1.0.1"
 
 func main() {
-	log.Printf("===> ILLiad upload WS is staring up <===")
+	log.Printf("===> ILLiad upload WS is starting up <===")
 	var ctx serviceContext
 	flag.IntVar(&ctx.port, "port", 8080, "API service port (default 8080)")
 	flag.StringVar(&ctx.uploadDir, "dir", "", "Upload directory")
@@ -104,7 +105,22 @@ func (svc *serviceContext) uploadHandler(c *gin.Context) {
 	formFile := formData.File["file"][0]
 	destFile := path.Join(svc.uploadDir, formFile.Filename)
 	log.Printf("INFO: request contains file %s, save it to %s", formFile.Filename, destFile)
-	err = c.SaveUploadedFile(formFile, destFile)
+	// err = c.SaveUploadedFile(formFile, destFile)
+	frmFile, err := formFile.Open()
+	if err != nil {
+		log.Printf("ERROR: unable to open uploaded file %s: %s", formFile.Filename, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer frmFile.Close()
+	out, err := os.Create(destFile)
+	if err != nil {
+		log.Printf("ERROR: unable to create temp file %s: %s", destFile, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer out.Close()
+	_, err = io.Copy(out, frmFile)
 	if err != nil {
 		log.Printf("ERROR: unable to save %s: %s", formFile.Filename, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
