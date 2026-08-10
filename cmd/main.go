@@ -128,6 +128,7 @@ func (svc *serviceContext) uploadHandler(c *gin.Context) {
 	}
 
 	// explicitly close files in case this is the cause of the resource temporarily unavailable error
+	log.Printf("INFO: explicitly closing files related to %s", formFile.Filename)
 	out.Close()
 	frmFile.Close()
 	c.String(http.StatusOK, fmt.Sprintf("received %s", formFile.Filename))
