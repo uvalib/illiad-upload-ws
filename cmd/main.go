@@ -126,6 +126,10 @@ func (svc *serviceContext) uploadHandler(c *gin.Context) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	// explicitly close files in case this is the cause of the resource temporarily unavailable error
+	out.Close()
+	frmFile.Close()
 	c.String(http.StatusOK, fmt.Sprintf("received %s", formFile.Filename))
 }
 
