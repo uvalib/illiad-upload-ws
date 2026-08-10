@@ -102,9 +102,19 @@ func (svc *serviceContext) uploadHandler(c *gin.Context) {
 		return
 	}
 
+	// pull the file from the formdata and set the destination file
 	formFile := formData.File["file"][0]
 	destFile := path.Join(svc.uploadDir, formFile.Filename)
+
 	log.Printf("INFO: request contains file %s, save it to %s", formFile.Filename, destFile)
+	out, err := os.Create(destFile)
+	if err != nil {
+		log.Printf("ERROR: unable to create local file %s to receive upload: %s", destFile, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer out.Close()
+
 	// err = c.SaveUploadedFile(formFile, destFile)
 	frmFile, err := formFile.Open()
 	if err != nil {
@@ -113,13 +123,8 @@ func (svc *serviceContext) uploadHandler(c *gin.Context) {
 		return
 	}
 	defer frmFile.Close()
-	out, err := os.Create(destFile)
-	if err != nil {
-		log.Printf("ERROR: unable to create temp file %s: %s", destFile, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	defer out.Close()
+
+	log.Printf("INFO: receive uploaded file %s contents", formFile.Filename)
 	_, err = io.Copy(out, frmFile)
 	if err != nil {
 		log.Printf("ERROR: unable to save %s: %s", formFile.Filename, err.Error())
