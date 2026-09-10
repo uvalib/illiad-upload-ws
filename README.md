@@ -1,4 +1,7 @@
 # ILLiad PDF upload service
+
+**THIS SERVICE IS NO LONGER USED**
+
 This is a service that bridges virgo and the ILLiad filesystem. It allows Virgo
 to upload PDF files for remediation.
 
